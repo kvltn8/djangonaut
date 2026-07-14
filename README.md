@@ -55,7 +55,7 @@ python manage.py runserver
 • 	Deployment guide (Heroku, PythonAnywhere, etc.)
 • 	More tests and documentation
 
-❤️ Acknowledgments
+Acknowledgments
 Thanks to my dear friend for teaching me Django and guiding me through this project!
 
 

@@ -4,11 +4,21 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-django = "*"
 psycopg2-binary = "*"
 djangorestframework = "*"
+djoser = "*"
+djangorestframework-simplejwt = "*"
+drf-nested-routers = "*"
+django-filter = "*"
+python-dotenv = "*"
+dj-database-url = "*"
+pillow = "*"
+mysqlclient = "*"
 
 [dev-packages]
+locust = "*"
+pytest = "*"
+pytest-django = "*"
 
 [requires]
 python_version = "3.10"
