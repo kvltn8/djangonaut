@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "680f9ee6939d6b71f652fcdc5e288fd68b2ecb9bb7a141a9104f5e61eb1f6c97"
+            "sha256": "5c5a8056a373d2c774911529965128402ccab6fcb419718c6b77c7335c497369"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -668,6 +668,14 @@
         }
     },
     "develop": {
+        "asgiref": {
+            "hashes": [
+                "sha256:5f184dc43b7e763efe848065441eac62229c9f7b0475f41f80e207a114eda4ce",
+                "sha256:e8667a091e69529631969fd45dc268fa79b99c92c5fcdda727757e52146ec133"
+            ],
+            "markers": "python_version >= '3.9'",
+            "version": "==3.11.1"
+        },
         "bidict": {
             "hashes": [
                 "sha256:03069d763bc387bbd20e7d49914e75fc4132a41937fa3405417e1a5a2d006d71",
@@ -947,6 +955,14 @@
             ],
             "markers": "python_version >= '3.6'",
             "version": "==1.7.5"
+        },
+        "django": {
+            "hashes": [
+                "sha256:0eb4a9bb1853a35b0286dbc6d916bd352c8c2687195a7f2d6f80cefd840e4970",
+                "sha256:5154a9bf84ac01dde011e367f355c07dbb329532e06810dcf3ef2af269e236e7"
+            ],
+            "markers": "python_version >= '3.10'",
+            "version": "==5.2.15"
         },
         "exceptiongroup": {
             "hashes": [
@@ -1342,6 +1358,15 @@
             "markers": "python_version >= '3.9'",
             "version": "==3.0.3"
         },
+        "model-bakery": {
+            "hashes": [
+                "sha256:6469223c9fb0eccb021d5c33667b914e9208dd2282d7dc1e55394c2310a7687d",
+                "sha256:d1f739cfc43e8d403d04734a18c73c8e677f655dd08719e35342c2f5ada1d7e9"
+            ],
+            "index": "pypi",
+            "markers": "python_version >= '3.10'",
+            "version": "==1.24.0"
+        },
         "msgpack": {
             "hashes": [
                 "sha256:01e2dd6c9b19d333a00282330cc8a73d38d8dabc306dc5b42cd668c3ac82e833",
@@ -1615,6 +1640,14 @@
             ],
             "markers": "python_version >= '3.6'",
             "version": "==1.1.0"
+        },
+        "sqlparse": {
+            "hashes": [
+                "sha256:12a08b3bf3eec877c519589833aed092e2444e68240a3577e8e26148acc7b1ba",
+                "sha256:e20d4a9b0b8585fdf63b10d30066c7c94c5d7a7ec47c889a2d83a3caa93ff28e"
+            ],
+            "markers": "python_version >= '3.8'",
+            "version": "==0.5.5"
         },
         "tomli": {
             "hashes": [

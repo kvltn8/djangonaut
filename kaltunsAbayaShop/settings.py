@@ -89,22 +89,13 @@ WSGI_APPLICATION = 'kaltunsAbayaShop.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 
-#DATABASES = {
-        #"default": dj_database_url.parse(
-        #DATABASE_URL, conn_max_age=600, ssl_require=True
-        #)
-   # }
-
 DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.mysql",
-            "NAME": os.getenv("DB_NAME"),
-            "HOST": os.getenv("DB_HOST"),
-            "PORT": os.getenv("DB_PORT"),
-            "USER": os.getenv("DB_USER"),
-            "PASSWORD": os.getenv("DB_PASSWORD"),
-        }
+        "default": dj_database_url.parse(
+        DATABASE_URL, conn_max_age=600, ssl_require=True
+        )
     }
+
+
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.

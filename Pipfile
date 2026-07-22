@@ -19,6 +19,7 @@ mysqlclient = "*"
 locust = "*"
 pytest = "*"
 pytest-django = "*"
+model-bakery = "*"
 
 [requires]
 python_version = "3.10"
