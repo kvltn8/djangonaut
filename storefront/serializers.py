@@ -1,5 +1,7 @@
+from django.db import transaction
 from rest_framework import serializers
 from .models import Products,Review,Orders,OrderItems,Carts,CartItems,Category,ProductsImage
+from .services import OrderService
 
 class CategorySerializer(serializers.ModelSerializer):
    product=serializers.StringRelatedField(read_only=True,many=True)
@@ -11,7 +13,7 @@ class ProductsImageSerializer(serializers.ModelSerializer):
                                                                                                 
     class Meta:
       model=ProductsImage
-      fields=['id','image']  #remove product
+      fields=['id','image']  
 
     def create(self, validated_data):
         product_id= self.context['product_id']
@@ -49,12 +51,25 @@ class OrderItemsSerializer(serializers.ModelSerializer):
         
 class OrdersSerializer(serializers.ModelSerializer):
     customerid = serializers.StringRelatedField(read_only=True)
+    items = OrderItemsSerializer(many = True, read_only=True)
+    total = serializers.SerializerMethodField()
 
     class Meta:
         model = Orders
-        fields = ['id', 'customerid', 'status']
-    
+        fields = ['id', 'customerid', 'status', 'items', 'total']
+    def get_total(self, obj):
+        return sum(item.quantity * item.unitprice for item in obj.items.all())
+    # view and calculate totals
 
+class CreateOrderSerializer(serializers.Serializer):
+    card_id = serializers.UUIDField()
+    def save(self, **kwargs):
+        order = OrderService.create_order(
+            user_id = self.context['user_id'],
+            cart_id = self.validated_data['cart_id'],
+        )
+        self.intance =order
+        return order
 class CartItemProductSerializers(serializers.ModelSerializer):
    class Meta:
       model=Products
