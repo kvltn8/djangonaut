@@ -13,8 +13,8 @@ class Category(models.Model):
 class Products(models.Model):
   name =models.CharField(max_length=100)
   descprition = models.TextField()
-  price= models.DecimalField(max_digits=5, decimal_places=0)
-  stock_quantity=models.SmallIntegerField()
+  price= models.DecimalField(max_digits=10, decimal_places=2)
+  stock_quantity=models.PositiveSmallIntegerField()
   created_at=models.DateTimeField(auto_now_add=True)
   updated_at=models.DateTimeField(auto_now=True)
   category_id=models.ForeignKey(Category, on_delete=models.PROTECT,related_name="product", null=True) 
@@ -31,7 +31,7 @@ class Review(models.Model):
   created_at=models.DateTimeField(auto_now_add=True)
   product_id=models.ForeignKey(Products,on_delete=models.CASCADE,related_name="product_review")
 
-  #foriegnkey is reference to the parent pk 
+  #foriegnkey is reference to the parent pk
 
   #H/W - Order, order items , cart cart items
 
@@ -42,20 +42,22 @@ class Orders(models.Model):
   STATUS_APPROVED ='A'
   STATUS_COMPLETED ='C'
 
-  STATUS_CHOICES ={
+  STATUS_CHOICES =[
     (STATUS_PENDING,"Pending"),
     (STATUS_FAILED,"Failed"),
     (STATUS_APPROVED, "Approved"),
     (STATUS_COMPLETED, "Completed")
-  } 
+  ]
   customerid = models.ForeignKey(Customers,on_delete=models.CASCADE,related_name="order_history" )
-  status=models.CharField(max_length=1, choices=STATUS_CHOICES,default=STATUS_PENDING) 
+  status=models.CharField(max_length=1, choices=STATUS_CHOICES,default=STATUS_PENDING)
+  #missing created at and updated at
+  #order by created at
 
 class OrderItems(models.Model):
   orderid=models.ForeignKey(Orders,on_delete=models.CASCADE, related_name="items")
   product_id=models.ForeignKey(Products,on_delete=models.CASCADE,related_name="product_ordered")
-  quantity=models.SmallIntegerField()
-  unitprice=models.DecimalField(max_digits=20,decimal_places=2)
+  quantity=models.SmallIntegerField() # the stock needsto be positive
+  unitprice=models.DecimalField(max_digits=20,decimal_places=2) #consistency with price
 
 class Carts(models.Model):
   id = models.UUIDField(primary_key=True, default=uuid4)
@@ -65,7 +67,7 @@ class Carts(models.Model):
 class CartItems(models.Model):
   cart_id=models.ForeignKey(Carts, on_delete=models.CASCADE,related_name="items")
   product_id=models.ForeignKey(Products,on_delete=models.CASCADE,related_name="cart_item")
-  quantity=models.SmallIntegerField()
+  quantity=models.SmallIntegerField() # needs to be positive
   class Meta: 
     unique_together=[['cart_id','product_id']]
   def __str__(self):
