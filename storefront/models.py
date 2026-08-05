@@ -68,6 +68,8 @@ class CartItems(models.Model):
   quantity=models.SmallIntegerField()
   class Meta: 
     unique_together=[['cart_id','product_id']]
+  def __str__(self):
+    return self.product_id.name,self.quantity
 
 
   
