@@ -61,14 +61,14 @@ class OrdersSerializer(serializers.ModelSerializer):
         return sum(item.quantity * item.unitprice for item in obj.items.all())
     # view and calculate totals
 
-class CreateOrderSerializer(serializers.Serializer):
+class CreateOrderSerializer(serializers.Serializer):#Function in services.py to create an  order
     card_id = serializers.UUIDField()
     def save(self, **kwargs):
         order = OrderService.create_order(
             user_id = self.context['user_id'],
             cart_id = self.validated_data['cart_id'],
         )
-        self.intance =order
+        self.instance =order
         return order
 class CartItemProductSerializers(serializers.ModelSerializer):
    class Meta:

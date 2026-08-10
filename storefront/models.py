@@ -50,14 +50,16 @@ class Orders(models.Model):
   ]
   customerid = models.ForeignKey(Customers,on_delete=models.CASCADE,related_name="order_history" )
   status=models.CharField(max_length=1, choices=STATUS_CHOICES,default=STATUS_PENDING)
-  #missing created at and updated at
-  #order by created at
+  created_at = models.DateTimeField(auto_now_add=True)
+  updated_at = models.DateTimeField(auto_now=True)
+  class Meta:
+    ordering = ["created_at"]
 
 class OrderItems(models.Model):
   orderid=models.ForeignKey(Orders,on_delete=models.CASCADE, related_name="items")
   product_id=models.ForeignKey(Products,on_delete=models.CASCADE,related_name="product_ordered")
-  quantity=models.SmallIntegerField() # the stock needsto be positive
-  unitprice=models.DecimalField(max_digits=20,decimal_places=2) #consistency with price
+  quantity=models.PositiveSmallIntegerField() # the stock needsto be positive
+  unitprice=models.DecimalField(max_digits=10,decimal_places=2) #consistency with price
 
 class Carts(models.Model):
   id = models.UUIDField(primary_key=True, default=uuid4)
@@ -67,7 +69,7 @@ class Carts(models.Model):
 class CartItems(models.Model):
   cart_id=models.ForeignKey(Carts, on_delete=models.CASCADE,related_name="items")
   product_id=models.ForeignKey(Products,on_delete=models.CASCADE,related_name="cart_item")
-  quantity=models.SmallIntegerField() # needs to be positive
+  quantity=models.PositiveSmallIntegerField() # needs to be positive
   class Meta: 
     unique_together=[['cart_id','product_id']]
   def __str__(self):
