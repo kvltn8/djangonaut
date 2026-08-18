@@ -1,4 +1,4 @@
-name: Abaya shop CI/CD
+name: Abaya shop CI CD pipeline
 on:
   push:
     branches:
@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - name: list files
+      - name: List Files
         run: ls -la
       - name: Echo Message
         run: echo "Hello, this is a CI/CD pipeline for Abaya shop!"
