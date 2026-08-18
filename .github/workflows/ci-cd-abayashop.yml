@@ -14,9 +14,9 @@ jobs:
         - name: Checkout code
           uses: actions/checkout@v3
         - name: build docker image
-          run: docker build -t abaya shop
+          run: docker build -t abayashop .
         - name: run container
-          run: docker run -d -p 8000:8000 --name abaya shop
+          run: docker run -d -p 8000:8000 --name abayashop-container abayashop
         - name: wait for app
           run: sleep 5seconds
 
