@@ -6,11 +6,11 @@ on:
       - develop
 jobs:
     check:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: List Files
-        run: ls -la
-      - name: Echo Message
-        run: echo "Hello, this is a CI/CD pipeline for Abaya shop!"
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v3
+        - name: List Files
+          run: ls -la
+        - name: Echo Message
+          run: echo "Hello, this is a CI/CD pipeline for Abaya shop!"
