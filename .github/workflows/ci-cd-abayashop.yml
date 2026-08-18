@@ -7,9 +7,19 @@ on:
 jobs:
     check:
       runs-on: ubuntu-latest
+      defaults:
+        run:
+          working-directory: backend
       steps:
         - name: Checkout code
           uses: actions/checkout@v3
+        - name: build docker image
+          run: docker build -t abaya shop
+        - name: run container
+          run: docker run -d -p 8000:8000 --name abaya shop
+        - name: wait for app
+          run: sleep 5seconds
+
         - name: List Files
           run: ls -la
         - name: Echo Message
