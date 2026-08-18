@@ -1,0 +1,16 @@
+name: Abaya shop CI/CD
+on:
+  push:
+    branches:
+      - main
+      - develop
+jobs:
+    check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: list files
+        run: ls -la
+      - name: Echo Message
+        run: echo "Hello, this is a CI/CD pipeline for Abaya shop!"
