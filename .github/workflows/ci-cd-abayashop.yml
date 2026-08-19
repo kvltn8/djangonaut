@@ -21,16 +21,18 @@ jobs:
         - name: run container
           run: docker run -d -p 8000:8000 --name abayashop-container abayashop #the end of the build and run phase.
         - name: wait for app fail if it does not start  #Validation step starts here.
-          run: for i in {1..10}; do 
-                  if curl s http://localhost:8000; then
-                    echo "app is running"
-                    exit 0  
-                  fi 
-                    echo "waiting for app to start"
-                    sleep 2
-                  done
-                  echo "app failed to start"
-                  exit 1 #exit 0 stops because of success & exit 1 stops because an error or failure.
+          run: | 
+            for i in {1..10}; do 
+              if curl -s http://localhost:8000; then
+                echo "app is running"
+                exit 0  
+              fi 
+                echo "waiting for app to start"
+                sleep 2
+              done
+              echo "app failed to start"
+              exit 1 
+##exit 0 stops because of success & exit 1 stops because an error or failure.
 
         - name: List Files 
           run: ls -la
