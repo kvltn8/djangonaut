@@ -1,8 +1,8 @@
 name: Abaya shop CI CD pipeline
 on:
   push:
-    paths: 
-      - 'backend/**' 
+    #paths: 
+     # - 'backend/**' 
     branches:
       - main
       - develop
@@ -15,7 +15,8 @@ jobs:
       steps:
         - name: Checkout code
           uses: actions/checkout@v3
-        - name: build docker image
+        - name: Build docker image
+          working-directory: backend
           run: docker build -t abayashop .
         - name: run container
           run: docker run -d -p 8000:8000 --name abayashop-container abayashop
