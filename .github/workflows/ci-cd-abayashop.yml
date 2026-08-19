@@ -19,11 +19,26 @@ jobs:
           working-directory: backend
           run: docker build -t abayashop .
         - name: run container
-          run: docker run -d -p 8000:8000 --name abayashop-container abayashop
-        - name: wait for app
-          run: sleep 5
+          run: docker run -d -p 8000:8000 --name abayashop-container abayashop #the end of the build and run phase.
+        - name: wait for app fail if it does not start  #Validation step starts here.
+          run: for i in {1..10}; do 
+                  if curl s http://localhost:8000; then
+                    echo "app is running"
+                    exit 0  
+                  fi 
+                    echo "waiting for app to start"
+                    sleep 2
+                  done
+                  echo "app failed to start"
+                  exit 1 #exit 0 stops because of success & exit 1 stops because an error or failure.
 
-        - name: List Files
+        - name: List Files 
           run: ls -la
+        - name: Run Health Check
+          run: curl -f http://localhost:8000/ ##Validation step ends here
+        - name: cleanup container
+          if : always()
+          run: docker stop abayashop-container && docker rm abayashop-container
         - name: Echo Message
-          run: echo "Hello, this is a CI/CD pipeline for Abaya shop!"
+          run: echo "Hello, a CI/CD successful  "
+        
