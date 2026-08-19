@@ -20,6 +20,10 @@ jobs:
           run: docker build -t abayashop .
         - name: run container
           run: docker run -d -p 8000:8000 --name abayashop-container abayashop #the end of the build and run phase.
+        - name: Check container
+          run: docker ps -a
+        - name: Show container logs
+          run: docker logs abayashop-container
         - name: wait for app fail if it does not start  #Validation step starts here.
           run: | 
             for i in {1..10}; do 
