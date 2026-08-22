@@ -1,8 +1,8 @@
 name: Abaya shop CI CD pipeline
 on:
   push:
-    paths: 
-      - 'backend/**' 
+    ##paths: 
+     ## - 'backend/**' 
     branches:
       - main
       - develop
