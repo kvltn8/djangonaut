@@ -43,6 +43,7 @@ jobs:
               echo "app failed to start"
               exit 1 
         - name: Show container logs
+          if: always()
           run: docker logs abayashop-container
 ##exit 0 stops because of success & exit 1 stops because an error or failure.
 
