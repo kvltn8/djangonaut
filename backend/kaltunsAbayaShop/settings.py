@@ -18,8 +18,8 @@ import dj_database_url
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv()
-SECRETKEY=os.getenv("SECRETKEY")
-DATABASEURL=os.getenv("DATABASEURL")
+SECRET_KEY=os.getenv("SECRET_KEY")
+DATABASE_URL=os.getenv("DATABASE_URL")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -95,7 +95,7 @@ WSGI_APPLICATION = 'kaltunsAbayaShop.wsgi.application'
 
 DATABASES = {
         "default": dj_database_url.parse(
-        DATABASEURL, conn_max_age=600, ssl_require=True
+        DATABASE_URL, conn_max_age=600, ssl_require=True
         )
     }
 
