@@ -2,6 +2,6 @@
 __pycache__
 .venv
 .vscode
-dockerfile
+Dockerfile
 .dockerignore
 general.log
