@@ -15,7 +15,7 @@ jobs:
     env:
       DATABASE_URL: ${{secrets.DATABASE_URL}}
       SECRET_KEY: ${{secrets.SECRET_KEY}}
-      ALLOWED_HOSTS: ${{secrets.ALLOWED_HOSTS}}
+      ALLOWED_HOSTS: ${{vars.ALLOWED_HOSTS}}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
