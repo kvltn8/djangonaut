@@ -149,7 +149,7 @@ STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STORAGES = {
     "default": {
-        "BACKEND": "django.core.files.storage.FileSytemStorage",
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     # ...
     "staticfiles": {
