@@ -23,7 +23,7 @@ class Products(models.Model):
   
 class ProductsImage(models.Model):
   product_id=models.ForeignKey(Products, on_delete=models.CASCADE, related_name="images")#reverse relationship(use pre fetch related)
-  image=models.ImageField(upload_to="storefront/media")
+  image=models.URLField()
 
 class Review(models.Model):
   name = models.CharField(max_length=50)

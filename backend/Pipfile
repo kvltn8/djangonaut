@@ -17,6 +17,7 @@ mysqlclient = "*"
 django-cors-headers = "*"
 whitenoise = "*"
 gunicorn = "*"
+supabase = "*"
 
 [dev-packages]
 locust = "*"

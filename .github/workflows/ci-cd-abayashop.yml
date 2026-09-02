@@ -16,6 +16,9 @@ jobs:
       DATABASE_URL: ${{secrets.DATABASE_URL}}
       SECRET_KEY: ${{secrets.SECRET_KEY}}
       ALLOWED_HOSTS: ${{vars.ALLOWED_HOSTS}}
+      SUPABASE_URL: ${{vars.SUPABASE_URL}}
+      SUPABASE_SERVICE_KEY: ${{secrets.SUPABASE_SERVICE_KEY}}
+      
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -28,6 +31,9 @@ jobs:
             -e DATABASE_URL="$DATABASE_URL" \
             -e SECRET_KEY="$SECRET_KEY" \
             -e ALLOWED_HOSTS="$ALLOWED_HOSTS" \
+            -e SUPABASE_URL="$SUPABASE_URL" \
+            -e SUPABASE_SERVICE_KEY="$SUPABASE_SERVICE_KEY" \
+
             abayashop #the end of the build and run phase.
 
       - name: Check container

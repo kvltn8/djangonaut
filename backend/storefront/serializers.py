@@ -2,6 +2,7 @@ from django.db import transaction
 from rest_framework import serializers
 from .models import Products,Review,Orders,OrderItems,Carts,CartItems,Category,ProductsImage
 from .services import OrderService
+from .storage import uploadproductimage
 
 class CategorySerializer(serializers.ModelSerializer):
    product=serializers.StringRelatedField(read_only=True,many=True)
@@ -10,14 +11,17 @@ class CategorySerializer(serializers.ModelSerializer):
      fields=['id','title','product']
 
 class ProductsImageSerializer(serializers.ModelSerializer):
-                                                                                                
+    upload = serializers.ImageField(write_only = True) 
+    image = serializers.URLField(read_only = True)                                           
     class Meta:
       model=ProductsImage
-      fields=['id','image']  
+      fields=['id','image','upload']  
 
     def create(self, validated_data):
         product_id= self.context['product_id']
-        return ProductsImage.objects.create(product_id_id=product_id, **validated_data)
+        file =  validated_data.pop("upload")#stored in the bucket
+        url = uploadproductimage(file)#stored in the table.
+        return ProductsImage.objects.create(product_id_id=product_id, image = url)
 
 class ProductsSerializer(serializers.ModelSerializer):
   #id=serializers.IntegerField(read_only=True)
