@@ -33,7 +33,8 @@ jobs:
             -e ALLOWED_HOSTS="$ALLOWED_HOSTS" \
             -e SUPABASE_URL="$SUPABASE_URL" \
             -e SUPABASE_SERVICE_KEY="$SUPABASE_SERVICE_KEY" \
-            
+            abayashop
+
       - name: Check container
         run: docker ps -a
       - name: wait for app fail if it does not start #Validation step starts here.
