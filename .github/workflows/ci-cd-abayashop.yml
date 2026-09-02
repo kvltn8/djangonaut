@@ -27,15 +27,13 @@ jobs:
         run: docker build -t abayashop .
       - name: run container
         run: |
-          docker run -d -p 8000:8000 --name abayashop-container\
+          docker run -d -p 8000:8000 --name abayashop-container \
             -e DATABASE_URL="$DATABASE_URL" \
             -e SECRET_KEY="$SECRET_KEY" \
             -e ALLOWED_HOSTS="$ALLOWED_HOSTS" \
             -e SUPABASE_URL="$SUPABASE_URL" \
             -e SUPABASE_SERVICE_KEY="$SUPABASE_SERVICE_KEY" \
-
-            abayashop #the end of the build and run phase.
-
+            
       - name: Check container
         run: docker ps -a
       - name: wait for app fail if it does not start #Validation step starts here.
