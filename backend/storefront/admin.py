@@ -77,7 +77,7 @@ class ProductAdmin(admin.ModelAdmin):
             return format_html(
                 '<img src="{}" width="60" height="60" '
                 'style="object-fit: cover; border-radius: 5px;" />',
-                image.image.url,
+                image.image,
             )
 
         return "No image"
