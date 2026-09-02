@@ -20,7 +20,7 @@ class ProductsImageSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         product_id= self.context['product_id']
         file =  validated_data.pop("upload")#stored in the bucket
-        url = uploadproductimage(file)#stored in the table.
+        url = uploadproductimage(file)#stored in the tablein  supabase.
         return ProductsImage.objects.create(product_id_id=product_id, image = url)
 
 class ProductsSerializer(serializers.ModelSerializer):
