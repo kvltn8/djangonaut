@@ -1,5 +1,8 @@
 from django.contrib import admin
+from django import forms
 from django.utils.html import format_html
+
+
 
 from .models import (
     Category,
@@ -11,7 +14,7 @@ from .models import (
     Carts,
     CartItems,
 )
-
+from .storage import uploadproductimage
 
 # -------------------------
 # Category
@@ -31,7 +34,26 @@ class ReviewInline(admin.TabularInline):
     model = Review
     extra = 1
 
+class ProductsImageForm(forms.ModelForm):
+    image = forms.ImageField(required=False)
 
+    class Meta:
+        model = ProductsImage
+        fields = "__all__"
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+
+        uploaded_file = self.cleaned_data.get("image")
+
+        if uploaded_file:
+            image_url = uploadproductimage(uploaded_file)
+            instance.image = image_url
+
+        if commit:
+            instance.save()
+
+        return instance
 class ProductImageInline(admin.TabularInline):
     model = ProductsImage
     extra = 1
