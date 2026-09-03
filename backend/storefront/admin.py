@@ -56,6 +56,7 @@ class ProductsImageForm(forms.ModelForm):
         return instance
 class ProductImageInline(admin.TabularInline):
     model = ProductsImage
+    form = ProductsImageForm
     extra = 1
 
 
