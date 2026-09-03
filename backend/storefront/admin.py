@@ -66,6 +66,7 @@ class ProductImageInline(admin.TabularInline):
 
 @admin.register(Products)
 class ProductAdmin(admin.ModelAdmin):
+
     list_display = (
         "thumbnail",
         "name",
@@ -91,6 +92,19 @@ class ProductAdmin(admin.ModelAdmin):
         ReviewInline,
         ProductImageInline,
     ]
+
+    def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
+        if extra_context is None:
+            extra_context = {}
+
+        extra_context["has_file_field"] = True
+
+        return super().changeform_view(
+            request,
+            object_id,
+            form_url,
+            extra_context,
+        )
 
     @admin.display(description="Image")
     def thumbnail(self, obj):
