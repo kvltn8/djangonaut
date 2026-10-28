@@ -75,9 +75,9 @@ class CreateOrderSerializer(serializers.Serializer):#Function in services.py to 
         self.instance =order
         return order
 class CartItemProductSerializers(serializers.ModelSerializer):
-   class Meta:
-      model=Products
-      fields=['name', 'price', 'image']
+    class Meta:
+        model=Products
+        fields=['id','name', 'price']
 
 class CartItemsSerializer(serializers.ModelSerializer):
     product=CartItemProductSerializers(source="product_id",read_only=True)

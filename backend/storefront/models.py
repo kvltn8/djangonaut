@@ -25,6 +25,9 @@ class ProductsImage(models.Model):
   product_id=models.ForeignKey(Products, on_delete=models.CASCADE, related_name="images")#reverse relationship(use pre fetch related)
   image=models.URLField()#we are storing the image url instead of the image
 
+  def __str__(self):
+        return f"Image for {self.product_id}"
+
 class Review(models.Model):
   name = models.CharField(max_length=50)
   comment = models.TextField()
@@ -73,7 +76,7 @@ class CartItems(models.Model):
   class Meta: 
     unique_together=[['cart_id','product_id']]
   def __str__(self):
-    return self.product_id.name,self.quantity
+    return f"product {self.product_id.name}-{self.quantity}"
 
 
   

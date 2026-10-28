@@ -1,20 +1,37 @@
-from django.contrib import admin
+import logging
+
 from django import forms
+from django.contrib import admin
 from django.utils.html import format_html
 
-
-
 from .models import (
+    Carts,
+    CartItems,
     Category,
+    OrderItems,
+    Orders,
     Products,
     ProductsImage,
     Review,
-    Orders,
-    OrderItems,
-    Carts,
-    CartItems,
 )
-from .storage import uploadproductimage
+from .storage import deleteproductimage, uploadproductimage
+
+logger = logging.getLogger(__name__)
+
+
+def safe_delete_image(url):
+    """Remove a file from Supabase without breaking Django Admin."""
+    if not url:
+        return
+
+    try:
+        deleteproductimage(url)
+    except Exception:
+        logger.exception(
+            "Could not delete image from storage: %s",
+            url,
+        )
+
 
 # -------------------------
 # Category
@@ -34,38 +51,77 @@ class ReviewInline(admin.TabularInline):
     model = Review
     extra = 1
 
+
 class ProductsImageForm(forms.ModelForm):
-    image = forms.ImageField(required=False)
+    image_file = forms.ImageField(
+        required=False,
+        label="Upload image",
+    )
 
     class Meta:
         model = ProductsImage
-        fields = "__all__"
+        exclude = ("image",)
 
     def save(self, commit=True):
         instance = super().save(commit=False)
-
-        uploaded_file = self.cleaned_data.get("image")
+        uploaded_file = self.cleaned_data.get("image_file")
 
         if uploaded_file:
-            image_url = uploadproductimage(uploaded_file)
-            instance.image = image_url
+            old_url = instance.image if instance.pk else None
 
-        if commit:
+            uploaded_file.seek(0)
+            new_url = uploadproductimage(uploaded_file)
+
+            if not new_url:
+                raise forms.ValidationError(
+                    "The image upload failed. No image URL was returned."
+                )
+
+            instance.image = new_url
+
+            # Save the new URL before removing the previous image.
+            if commit:
+                instance.save()
+                safe_delete_image(old_url)
+
+        if commit and not uploaded_file:
             instance.save()
 
         return instance
+
+
 class ProductImageInline(admin.TabularInline):
     model = ProductsImage
     form = ProductsImageForm
     extra = 1
+    fields = ("preview", "image_file")
+    readonly_fields = ("preview",)
+
+    @admin.display(description="Current image")
+    def preview(self, obj):
+        if obj and obj.image:
+            return format_html(
+                '<img src="{}" width="80" height="80" '
+                'style="object-fit: cover; border-radius: 5px;" />',
+                obj.image,
+            )
+
+        return "No image"
 
 
 # -------------------------
 # Products
 # -------------------------
 
+class ProductAdminForm(forms.ModelForm):
+    class Meta:
+        model = Products
+        fields = "__all__"
+
+
 @admin.register(Products)
 class ProductAdmin(admin.ModelAdmin):
+    form = ProductAdminForm
 
     list_display = (
         "thumbnail",
@@ -74,102 +130,39 @@ class ProductAdmin(admin.ModelAdmin):
         "stock_quantity",
         "category_id",
     )
+    list_editable = ("price", "stock_quantity")
+    list_select_related = ("category_id",)
+    search_fields = ("name",)
+    inlines = [ReviewInline, ProductImageInline]
 
-    list_editable = (
-        "price",
-        "stock_quantity",
-    )
-
-    list_select_related = (
-        "category_id",
-    )
-
-    search_fields = (
-        "name",
-    )
-
-    inlines = [
-        ReviewInline,
-        ProductImageInline,
-    ]
-
-    def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
-        if extra_context is None:
-            extra_context = {}
-
-        extra_context["has_file_field"] = True
-
-        return super().changeform_view(
-            request,
-            object_id,
-            form_url,
-            extra_context,
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .prefetch_related("images")
         )
 
     @admin.display(description="Image")
     def thumbnail(self, obj):
-        image = obj.images.first()
+        images = list(obj.images.all())
 
-        if image and image.image:
+        if images and images[0].image:
             return format_html(
                 '<img src="{}" width="60" height="60" '
                 'style="object-fit: cover; border-radius: 5px;" />',
-                image.image,
+                images[0].image,
             )
 
         return "No image"
 
+    def save_formset(self, request, form, formset, change):
+        """Save inline rows and clean up deleted Supabase images."""
 
-# -------------------------
-# Order Items Inline
-# -------------------------
+        # Process deletions before saving the remaining inline rows.
+        for obj in formset.deleted_objects:
+            url = obj.image if isinstance(obj, ProductsImage) else None
+            obj.delete()
+            safe_delete_image(url)
 
-class OrderItemsInline(admin.TabularInline):
-    model = OrderItems
-    extra = 1
-
-
-# -------------------------
-# Orders
-# -------------------------
-
-@admin.register(Orders)
-class OrdersAdmin(admin.ModelAdmin):
-    list_display = (
-        "id",
-        "status",
-        "customerid",
-    )
-
-    list_select_related = (
-        "customerid",
-    )
-
-    inlines = [
-        OrderItemsInline,
-    ]
-
-
-# -------------------------
-# Cart Items Inline
-# -------------------------
-
-class CartItemsInline(admin.TabularInline):
-    model = CartItems
-    extra = 1
-
-
-# -------------------------
-# Carts
-# -------------------------
-
-@admin.register(Carts)
-class CartsAdmin(admin.ModelAdmin):
-    list_display = (
-        "id",
-        "created_at",
-    )
-
-    inlines = [
-        CartItemsInline,
-    ]
+        # Save each inline through its own ModelForm so that
+        # Products
