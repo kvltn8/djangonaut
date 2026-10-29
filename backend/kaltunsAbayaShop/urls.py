@@ -29,7 +29,8 @@ urlpatterns = [
     path('auth/', include('djoser.urls')),
     path('auth/', include('djoser.urls.jwt')),
     path('', include('customers.urls')),
-    path('', include('storefront.urls'))
+    path('', include('storefront.urls')),
+    path('', include('chatbot.urls')),
 ]
 
 

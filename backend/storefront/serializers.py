@@ -2,7 +2,7 @@ from django.db import transaction
 from rest_framework import serializers
 from .models import Products,Review,Orders,OrderItems,Carts,CartItems,Category,ProductsImage
 from .services import OrderService
-from .storage import uploadproductimage
+from .storage import ImageUploadError, uploadproductimage
 
 class CategorySerializer(serializers.ModelSerializer):
    product=serializers.StringRelatedField(read_only=True,many=True)
@@ -20,7 +20,10 @@ class ProductsImageSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         product_id= self.context['product_id']
         file =  validated_data.pop("upload")#stored in the bucket
-        url = uploadproductimage(file)#stored in the tablein  supabase.
+        try:
+            url = uploadproductimage(file)#stored in the tablein  supabase.
+        except ImageUploadError as exc:
+            raise serializers.ValidationError({"upload": str(exc)})
         return ProductsImage.objects.create(product_id_id=product_id, image = url)
 
 class ProductsSerializer(serializers.ModelSerializer):
@@ -75,18 +78,69 @@ class CreateOrderSerializer(serializers.Serializer):#Function in services.py to 
         self.instance =order
         return order
 class CartItemProductSerializers(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+
     class Meta:
         model=Products
-        fields=['id','name', 'price']
+        fields=['id','name','price','stock_quantity','image']
+
+    def get_image(self, obj):
+        # `images` is prefetched by the view, so use .all() (no extra query).
+        images = list(obj.images.all())
+        return images[0].image if images else None
+
 
 class CartItemsSerializer(serializers.ModelSerializer):
     product=CartItemProductSerializers(source="product_id",read_only=True)
+
     class Meta:
         model=CartItems
         fields=['id', 'cart_id','product_id','product','quantity']
+        read_only_fields=['cart_id']
         extra_kwargs = {
-            "product_id": {"write_only":True}
+            "product_id": {"write_only":True},
+            "quantity": {"min_value": 1},
         }
+        # The cart comes from the URL (/carts/<id>/cartitems/), and adding a
+        # product that is already in the cart increases its quantity, so the
+        # default unique-together validator must not run.
+        validators = []
+
+    def validate(self, attrs):
+        if self.instance is not None:
+            product = self.instance.product_id
+            quantity = attrs.get('quantity', self.instance.quantity)
+            already = 0
+        else:
+            product = attrs['product_id']
+            quantity = attrs['quantity']
+            already = CartItems.objects.filter(
+                cart_id=self.context['cart_id'], product_id=product
+            ).values_list('quantity', flat=True).first() or 0
+
+        if product.stock_quantity < 1:
+            raise serializers.ValidationError(f"{product.name} is sold out.")
+        if already + quantity > product.stock_quantity:
+            raise serializers.ValidationError(f"Only {product.stock_quantity} of {product.name} left in stock.")
+        return attrs
+
+    def create(self, validated_data):
+        cart_id = self.context['cart_id']
+        product = validated_data['product_id']
+        quantity = validated_data['quantity']
+        item, created = CartItems.objects.get_or_create(
+            cart_id_id=cart_id, product_id=product, defaults={'quantity': quantity}
+        )
+        if not created:
+            item.quantity += quantity
+            item.save(update_fields=['quantity'])
+        return item
+
+    def update(self, instance, validated_data):
+        # Only the quantity can change; to swap products, remove and re-add.
+        instance.quantity = validated_data.get('quantity', instance.quantity)
+        instance.save(update_fields=['quantity'])
+        return instance
 
 class CartsSerializer(serializers.ModelSerializer):
     id=serializers.UUIDField(read_only=True)
@@ -94,6 +148,3 @@ class CartsSerializer(serializers.ModelSerializer):
     class Meta:
         model=Carts
         fields=['id','items']
-        
-
-

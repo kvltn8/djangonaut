@@ -5,9 +5,9 @@ import json
 from .search import search
 load_dotenv()
 
-url = os.getenv("URL")
-model = os.getenv("MODEL")
-max_turns = int(os.getenv("MAX_TURNS"))
+# Read at call time (not import time) so a missing variable cannot stop the server from starting.
+def _settings():
+  return os.getenv("URL"), os.getenv("MODEL"), int(os.getenv("MAX_TURNS") or 3)
 tools = [{
   "type": "function",
   "function":{
@@ -28,13 +28,14 @@ tools = [{
 }]
 
 SYSTEM_PROMPT=(
-  "You are the assistance for an abayashop."
+  "You are the friendly shop assistant for Kaltun's Abaya Shop. Prices are in Kenyan Shillings (KSh). "
   "Use search_documents to find information before answering."
   "If the results don't answer the question say so instead of guessing "
   "Keep answers short and friendly"
 )
 
 def ask(question):
+  url, model, max_turns = _settings()
   messages=[
       {
         "role": "system", "content": SYSTEM_PROMPT
@@ -51,17 +52,18 @@ def ask(question):
       headers={"Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}"},
       json={
         "model": model,
-        "mes.sages":messages,
+        "messages":messages,
         "tools": tools
       },
+      timeout=45,
     )
     response.raise_for_status()
     message = response.json()["choices"][0]["message"]
     messages.append(message)
-    tools_calls = message.get("tools_calls")
-    if not tools_calls:
-      return message["content"]
-    for call in tools_calls:
+    tool_calls = message.get("tool_calls")
+    if not tool_calls:
+      return message.get("content") or "We are sorry we couldn't find any anwers for that question"
+    for call in tool_calls:
       args = json.loads(call["function"]["arguments"])
       results = search(args["query"])
       messages.append({

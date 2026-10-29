@@ -12,7 +12,10 @@ class OrderService:
         cart_items = CartItems.objects.filter(cart_id=cart_id)
         if not cart_items.exists():
             raise ValidationError("Cart is empty")
-        customer = Customers.objects.get(user_id = user_id)
+        try:
+            customer = Customers.objects.get(user_id = user_id)
+        except Customers.DoesNotExist:
+            raise ValidationError("No customer profile found for this account.")
         order = Orders.objects.create(customerid = customer)
         cart_items = cart_items.select_related("product_id")
         product_ids = [item.product_id_id for item in cart_items]

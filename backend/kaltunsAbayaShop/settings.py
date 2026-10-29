@@ -32,8 +32,23 @@ DATABASE_URL=os.getenv("DATABASE_URL")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
-CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGNS","http://localhost:5173").split(",")
+def _env_list(*names, default=""):
+    """Comma-separated env var -> clean list (first name that is set wins)."""
+    for name in names:
+        value = os.getenv(name)
+        if value:
+            return [v.strip() for v in value.split(",") if v.strip()]
+    return [v.strip() for v in default.split(",") if v.strip()]
+
+ALLOWED_HOSTS = _env_list("ALLOWED_HOSTS", default="localhost,127.0.0.1")
+# CORS_ALLOWED_ORIGNS (sic) is the name this project used before; both work.
+CORS_ALLOWED_ORIGINS = _env_list("CORS_ALLOWED_ORIGINS", "CORS_ALLOWED_ORIGNS", default="http://localhost:5173")
+
+# Django admin (image uploads) runs over HTTPS behind the host's proxy. Without
+# these two settings Django cannot tell the request is secure and rejects admin
+# form posts with "CSRF verification failed / Origin checking failed".
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+CSRF_TRUSTED_ORIGINS = _env_list("CSRF_TRUSTED_ORIGINS", default="https://*.onrender.com")
 
 
 # Application definition
@@ -99,7 +114,8 @@ WSGI_APPLICATION = 'kaltunsAbayaShop.wsgi.application'
 
 DATABASES = {
         "default": dj_database_url.parse(
-        DATABASE_URL, conn_max_age=600, ssl_require=True
+        DATABASE_URL, conn_max_age=600,
+        ssl_require=os.getenv("DB_SSL_REQUIRE", "True") == "True",
         )
     }
 
@@ -110,6 +126,8 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
+    # The chat endpoint calls a paid LLM, so it is rate limited per visitor (IP).
+    "DEFAULT_THROTTLE_RATES": {"anon": os.getenv("CHAT_RATE_LIMIT", "20/min")},
 }
 
 
