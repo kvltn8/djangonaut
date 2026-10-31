@@ -39,6 +39,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
       model=Review
       fields=['id','name','comment']
+      extra_kwargs={'comment': {'max_length': 1000}}
 
     def create(self, validated_data):#overiding create method
       product_id =self.context['product_id']

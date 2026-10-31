@@ -60,7 +60,7 @@ class Orders(models.Model):
 
 class OrderItems(models.Model):
   orderid=models.ForeignKey(Orders,on_delete=models.CASCADE, related_name="items")
-  product_id=models.ForeignKey(Products,on_delete=models.CASCADE,related_name="product_ordered")
+  product_id=models.ForeignKey(Products,on_delete=models.PROTECT,related_name="product_ordered")  # never lose order history
   quantity=models.PositiveSmallIntegerField() # the stock needsto be positive
   unitprice=models.DecimalField(max_digits=10,decimal_places=2) #consistency with price
 

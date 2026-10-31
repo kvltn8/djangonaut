@@ -5,7 +5,8 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import NotFound
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.db.models import Prefetch
+from django.db.models import Prefetch, ProtectedError
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework import status
 from rest_framework.response import Response
 from .models import Products,Review,Orders,OrderItems,Carts,CartItems,Category,ProductsImage
@@ -15,16 +16,28 @@ from .filters import ProductFilters, ReviewFilters
 from .pagination import defaultPagination
 from .permissions import IsAdminOrReadOnly, IsAdminOrCreateOnly
 
+class ProtectedDeleteMixin:
+    """Deleting something that other records depend on returns a clear 409, not a 500."""
+    def destroy(self, request, *args, **kwargs):
+        try:
+            return super().destroy(request, *args, **kwargs)
+        except ProtectedError:
+            return Response(
+                {"detail": "This cannot be deleted because other records depend on it "
+                           "(for example orders, or products in this category). Set stock to 0 or archive it instead."},
+                status=status.HTTP_409_CONFLICT,
+            )
+
 #For category
 
-class CategoryViewSet(ModelViewSet):
+class CategoryViewSet(ProtectedDeleteMixin, ModelViewSet):
     permission_classes=[IsAdminOrReadOnly]
     queryset=Category.objects.prefetch_related("product").all()
     serializer_class=CategorySerializer
 
 
 #For products
-class ProductsViewSet(ModelViewSet):
+class ProductsViewSet(ProtectedDeleteMixin, ModelViewSet):
     queryset = Products.objects.select_related("category_id").prefetch_related("images","product_review").order_by("id")
 
     serializer_class = ProductsSerializer
@@ -51,6 +64,10 @@ class ProductsImageViewSet(ModelViewSet):
 
 class ReviewViewSet(ModelViewSet):
     permission_classes=[IsAdminOrCreateOnly]  # anyone can read/post a review; only staff edit or delete
+    throttle_scope='reviews'
+    def get_throttles(self):
+        # only posting is rate limited (REVIEW_RATE_LIMIT, default 20/hour per visitor)
+        return [ScopedRateThrottle()] if self.action == 'create' else []
     #queryset = Review.objects.prefetch_related('product_id').all()
     serializer_class=ReviewSerializer
     filter_backends=[DjangoFilterBackend]
@@ -68,7 +85,7 @@ class OrdersViewSet(CreateModelMixin,ListModelMixin,RetrieveModelMixin,GenericVi
     """Customers can place and read their own orders. Status changes are done by staff in the admin."""
     permission_classes=[IsAuthenticated]
     def get_queryset(self):
-        qs = Orders.objects.prefetch_related("items").order_by("-created_at")
+        qs = Orders.objects.prefetch_related("items").order_by("created_at", "id")  # oldest first: the storefront reverses it for display
         user = self.request.user
         return qs if user.is_staff else qs.filter(customerid__user_id=user)
     def get_serializer_class(self):

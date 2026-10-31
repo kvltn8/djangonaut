@@ -127,7 +127,13 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
     # The chat endpoint calls a paid LLM, so it is rate limited per visitor (IP).
-    "DEFAULT_THROTTLE_RATES": {"anon": os.getenv("CHAT_RATE_LIMIT", "20/min")},
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": os.getenv("CHAT_RATE_LIMIT", "20/min"),
+        "reviews": os.getenv("REVIEW_RATE_LIMIT", "20/hour"),
+    },
+    # How many reverse proxies sit in front of the app (Render = 1). With this set, the visitor IP used for
+    # rate limiting is the one the proxy saw, so a forged X-Forwarded-For header cannot bypass the limit.
+    "NUM_PROXIES": int(os.getenv("NUM_PROXIES")) if os.getenv("NUM_PROXIES") else None,
 }
 
 
