@@ -3,6 +3,8 @@ if (import.meta.env.PROD && !import.meta.env.VITE_API_URL) {
   console.error('[KaltunsShop] VITE_API_URL was not set at build time - the app is calling http://localhost:8000. Set it in your host\'s environment variables and redeploy.');
 }
 export const CURRENCY = 'KES'; // Kenyan Shillings - prices from the backend are shown as-is in KES
+// M-Pesa (STK push) endpoint from PayFlow. Override with VITE_PAYFLOW_URL; this default is the link you gave me.
+export const PAYFLOW_URL = import.meta.env.VITE_PAYFLOW_URL ?? 'https://payflow-d9ic.onrender.com/api/v1/pay/c98f6daa-75e0-4727-b7dd-14579a7d866b/';
 export const FREE_SHIPPING_THRESHOLD = Number(import.meta.env.VITE_FREE_SHIPPING_THRESHOLD ?? 10000);
 
 // Local images (public/images) - replace with your own photos using the same file names.

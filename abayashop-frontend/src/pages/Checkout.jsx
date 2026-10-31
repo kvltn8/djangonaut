@@ -5,6 +5,8 @@ import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
 import { getCustomer, updateCustomer } from '../api/auth';
 import { createOrder } from '../api/orders';
+import { payWithMpesa } from '../api/payments';
+import { toLocalPhone, wholeShillings } from '../lib/mpesa';
 import { money } from '../lib/format';
 import { FREE_SHIPPING_THRESHOLD } from '../config';
 import Icon from '../components/ui/Icon';
@@ -17,6 +19,7 @@ export default function Checkout() {
   const qc = useQueryClient();
   const customer = useQuery({ queryKey: ['customer'], queryFn: getCustomer });
   const [form, setForm] = useState({ phone_number: '', city: '', country: '', delivery_address: '' });
+  const [mpesa, setMpesa] = useState(null); // null = use the delivery phone number
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
 
@@ -31,19 +34,27 @@ export default function Checkout() {
   if (!cartId || items.length === 0) return <Navigate to="/shop" replace />;
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+  const payPhone = mpesa ?? form.phone_number;
   const outOfStock = items.find((i) => i.quantity > (i.product?.stock_quantity ?? Infinity));
 
   const submit = async (e) => {
     e.preventDefault();
-    setBusy(true); setError(null);
+    setError(null);
+    const local = toLocalPhone(payPhone);                    // check BEFORE creating an order
+    if (!local) { setError(new Error('Enter a valid M-Pesa number, for example 0712345678.')); return; }
+    setBusy(true);
     try {
       if (!customer.data) throw new Error('We could not load your customer profile. Please sign in again.');
       await updateCustomer(customer.data.id, form);          // save delivery details
       const order = await createOrder(cartId);               // server turns the cart into an order
+      // The amount charged is the order total the SERVER calculated from your catalogue prices - never typed by the customer.
+      let payment = { status: 'pushed', phone: local };
+      try { await payWithMpesa({ phone: local, amount: wholeShillings(order.total) }); }
+      catch (pe) { payment = { status: 'failed', phone: local, message: pe.message }; } // the order is kept; the next page offers a retry
       forgetCart();
       qc.invalidateQueries({ queryKey: ['orders'] });
       qc.invalidateQueries({ queryKey: ['products'] });      // stock changed
-      nav(`/orders/${order.id}`, { replace: true, state: { justPlaced: true } });
+      nav(`/orders/${order.id}`, { replace: true, state: { justPlaced: true, payment } });
     } catch (ex) {
       setError(ex);
       toast.error(ex.message);
@@ -69,9 +80,16 @@ export default function Checkout() {
             <input id="phone" required inputMode="tel" maxLength={10} value={form.phone_number} onChange={set('phone_number')} autoComplete="tel-national" className="field" />
             <p className="text-label-md normal-case tracking-normal text-outline mt-1">Up to 10 digits.</p>
           </div>
-          <div className="bg-surface-container-low p-5 rounded-xl flex gap-3">
-            <Icon name="payments" className="text-secondary" />
-            <p className="text-on-surface-variant">Payment is confirmed after your order is placed. Your order is created as <strong className="font-medium text-primary">Pending</strong> until payment is received.</p>
+          <div className="bg-surface-container-low p-5 rounded-xl space-y-4">
+            <div className="flex gap-3">
+              <Icon name="payments" className="text-secondary" />
+              <p className="text-on-surface-variant">Pay with M-Pesa. After you place your order we send a prompt to your phone: enter your PIN to pay. Your order stays <strong className="font-medium text-primary">Pending</strong> until we confirm your payment.</p>
+            </div>
+            <div>
+              <label className="field-label" htmlFor="mpesa">M-Pesa number</label>
+              <input id="mpesa" required inputMode="tel" placeholder="07XXXXXXXX" value={payPhone} onChange={(e) => setMpesa(e.target.value)} className="field" />
+              <p className="text-label-md normal-case tracking-normal text-outline mt-1">Defaults to your phone number above. Change it to pay from a different line.</p>
+            </div>
           </div>
         </div>
 
@@ -93,7 +111,7 @@ export default function Checkout() {
           </div>
           {error && <p role="alert" className="mt-4 bg-error-container text-on-error-container px-4 py-3">{error.message}</p>}
           {outOfStock && <p className="mt-4 text-error">Some items exceed available stock — adjust your bag.</p>}
-          <button disabled={busy || !!outOfStock} className="btn-primary w-full mt-5 rounded-lg">{busy ? 'Placing order…' : 'Place order'}</button>
+          <button disabled={busy || !!outOfStock} className="btn-primary w-full mt-5 rounded-lg">{busy ? 'Placing order…' : `Pay ${money(subtotal)} with M-Pesa`}</button>
           <Link to="/shop" className="block text-center mt-4 text-on-surface-variant underline underline-offset-4">Continue shopping</Link>
         </aside>
       </form>
