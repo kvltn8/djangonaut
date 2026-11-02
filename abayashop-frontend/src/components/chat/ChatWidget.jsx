@@ -38,6 +38,7 @@ export default function ChatWidget() {
   const [failed, setFailed] = useState(null); // last question that errored, for "Try again"
   const endRef = useRef(null);
   const inputRef = useRef(null);
+  const session = useRef(0); // bumped on reset so a reply to an old question is ignored
 
   useEffect(() => { save(messages); }, [messages]);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, [messages, busy, open]);
@@ -52,16 +53,27 @@ export default function ChatWidget() {
   const ask = useCallback(async (raw) => {
     const message = raw.trim().slice(0, MAX_LEN);
     if (!message || busy) return;
+    const mine = session.current;
     setFailed(null); setBusy(true);
     setMessages((m) => (failed === message ? m : [...m, { role: 'user', text: message }]));
     try {
       const { answer } = await sendChat(message);
+      if (mine !== session.current) return;
       setMessages((m) => [...m, { role: 'bot', text: answer || 'Sorry, I do not have an answer for that.' }]);
     } catch (e) {
+      if (mine !== session.current) return;
       setMessages((m) => [...m, { role: 'bot', text: friendly(e), error: true }]);
       setFailed(message);
-    } finally { setBusy(false); }
+    } finally { if (mine === session.current) setBusy(false); }
   }, [busy, failed]);
+
+  /** Start over: clears the conversation, errors and draft, and shows the welcome message again. Not a page reload. */
+  const reset = () => {
+    session.current += 1;
+    setMessages([WELCOME]); setFailed(null); setBusy(false); setInput('');
+    try { sessionStorage.removeItem(STORE_KEY); } catch { /* storage unavailable */ }
+    inputRef.current?.focus();
+  };
 
   const submit = (e) => { e.preventDefault(); const t = input; setInput(''); ask(t); };
   const onlyWelcome = messages.length === 1;
@@ -77,6 +89,7 @@ export default function ChatWidget() {
             <p className="font-serif text-title-lg leading-tight text-primary">Kaltun&apos;s Assistant</p>
             <p className="text-label-md normal-case tracking-normal text-on-surface-variant flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-secondary" />Here to help</p>
           </div>
+          <button onClick={reset} disabled={onlyWelcome && !busy && !input} aria-label="Start a new conversation" title="New conversation" className="p-1.5 text-on-surface-variant hover:text-primary transition-colors disabled:opacity-30 disabled:hover:text-on-surface-variant"><Icon name="refresh" size={22} /></button>
           <button onClick={() => setOpen(false)} aria-label="Close chat" className="p-1.5 -mr-1.5 text-on-surface-variant hover:text-primary transition-colors"><Icon name="close" size={22} /></button>
         </header>
 

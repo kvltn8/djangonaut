@@ -32,23 +32,17 @@ DATABASE_URL=os.getenv("DATABASE_URL")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
-def _env_list(*names, default=""):
-    """Comma-separated env var -> clean list (first name that is set wins)."""
-    for name in names:
-        value = os.getenv(name)
-        if value:
-            return [v.strip() for v in value.split(",") if v.strip()]
-    return [v.strip() for v in default.split(",") if v.strip()]
 
-ALLOWED_HOSTS = _env_list("ALLOWED_HOSTS", default="localhost,127.0.0.1")
+
+ALLOWED_HOSTS =os.getenv("ALLOWED_HOSTS")
 # CORS_ALLOWED_ORIGNS (sic) is the name this project used before; both work.
-CORS_ALLOWED_ORIGINS = _env_list("CORS_ALLOWED_ORIGINS", "CORS_ALLOWED_ORIGNS", default="http://localhost:5173")
+CORS_ALLOWED_ORIGINS =os.getenv("CORS_ALLOWED_ORIGINS", "CORS_ALLOWED_ORIGNS")
 
 # Django admin (image uploads) runs over HTTPS behind the host's proxy. Without
 # these two settings Django cannot tell the request is secure and rejects admin
 # form posts with "CSRF verification failed / Origin checking failed".
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-CSRF_TRUSTED_ORIGINS = _env_list("CSRF_TRUSTED_ORIGINS", default="https://*.onrender.com")
+#SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+CSRF_TRUSTED_ORIGINS =os.getenv("CSRF_TRUSTED_ORIGINS")
 
 
 # Application definition
