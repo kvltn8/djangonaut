@@ -34,15 +34,15 @@ DEBUG = os.getenv("DEBUG", "False") == "True"
 
 
 
-ALLOWED_HOSTS =os.getenv("ALLOWED_HOSTS")
+ALLOWED_HOSTS =os.getenv("ALLOWED_HOSTS", "").split(",")
 # CORS_ALLOWED_ORIGNS (sic) is the name this project used before; both work.
-CORS_ALLOWED_ORIGINS =os.getenv("CORS_ALLOWED_ORIGINS", "CORS_ALLOWED_ORIGNS")
+CORS_ALLOWED_ORIGINS =os.getenv("CORS_ALLOWED_ORIGINS", "CORS_ALLOWED_ORIGNS", "").split(",")
 
 # Django admin (image uploads) runs over HTTPS behind the host's proxy. Without
 # these two settings Django cannot tell the request is secure and rejects admin
 # form posts with "CSRF verification failed / Origin checking failed".
 #SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-CSRF_TRUSTED_ORIGINS =os.getenv("CSRF_TRUSTED_ORIGINS")
+CSRF_TRUSTED_ORIGINS =os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")
 
 
 # Application definition
