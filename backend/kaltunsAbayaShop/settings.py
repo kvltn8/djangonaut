@@ -36,7 +36,7 @@ DEBUG = os.getenv("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS =os.getenv("ALLOWED_HOSTS", "").split(",")
 # CORS_ALLOWED_ORIGNS (sic) is the name this project used before; both work.
-CORS_ALLOWED_ORIGINS =os.getenv("CORS_ALLOWED_ORIGNS", "").split(",")
+CORS_ALLOWED_ORIGINS =os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
 
 # Django admin (image uploads) runs over HTTPS behind the host's proxy. Without
 # these two settings Django cannot tell the request is secure and rejects admin
